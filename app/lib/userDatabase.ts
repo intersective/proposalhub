@@ -1,6 +1,5 @@
 // lib/userDatabase.ts
-import { db } from './firebase';
-import { query, where, collection, doc, getDoc, getDocs, addDoc, updateDoc } from 'firebase/firestore';
+import { adminDb } from './firebaseAdmin';
 import { v4 as uuid } from 'uuid';
 
 export interface Credential {
@@ -33,16 +32,16 @@ export const createUser = async (email: string) => {
     email,
     proposals: [],
   } as User;
-  const userRef = await addDoc(collection(db, 'users'), user);
-  const userDoc = await getDoc(userRef);
+  const userRef = await adminDb.collection('users').add(user);
+  const userDoc = await userRef.get();
   return { id: userRef.id, ...userDoc.data() } as User;
 }
 
 export const getUserById = async (id: string) => { 
   // Query Firestore for the user by ID
   // Return user data or null
-  const userDoc = await getDoc(doc(db, 'users', id));
-  return userDoc.exists() ? prepareUser(userDoc.id, userDoc.data()) : null;
+  const userDoc = await adminDb.collection('users').doc(id).get();
+  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
 }
 
 export const getUserByLoginCode = async (loginCode: string) => {
@@ -52,43 +51,59 @@ export const getUserByLoginCode = async (loginCode: string) => {
     return null;
   }
 
-  const userQuery = query(collection(db, 'users'), where('login.code', '==', loginCode));
-  const querySnapshot = await getDocs(userQuery);
+  const querySnapshot = await adminDb.collection('users')
+    .where('login.code', '==', loginCode)
+    .get();
+    
   if (querySnapshot.empty) {
     return null;
   }
   const userDoc = querySnapshot.docs[0];
-  return userDoc.exists() ? prepareUser(userDoc.id, userDoc.data()) : null;
-
+  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
 }
 
 export const getUserByEmail = async (email: string) => {
+  console.log('Getting user by email:', email);
   // Query Firestore for the user by email
   // Return user data or null
   if (!email) { 
+    console.log('No email provided');
     return null;
   }
 
-  const userQuery = query(collection(db, 'users'), where('email', '==', email));
-  const querySnapshot = await getDocs(userQuery);
-  if (querySnapshot.empty) {
-    return null;
+  try {
+    console.log('Querying Firestore for user...');
+    const querySnapshot = await adminDb.collection('users')
+      .where('email', '==', email)
+      .get();
+    console.log('Query completed. Found documents:', querySnapshot.size);
+    
+    if (querySnapshot.empty) {
+      console.log('No user found with email:', email);
+      return null;
+    }
+    
+    const userDoc = querySnapshot.docs[0];
+    console.log('User document exists:', userDoc.exists);
+    return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
+  } catch (error) {
+    console.error('Error getting user by email:', error);
+    throw error;
   }
-  const userDoc = querySnapshot.docs[0];
-  return userDoc.exists() ? prepareUser(userDoc.id, userDoc.data()) : null;
 };
 
 export const getUserByUserId = async (userId: string) => {
   if (!userId) { 
     return null;
   }
-  const userQuery = query(collection(db, 'users'), where('userId', '==', userId));
-  const querySnapshot = await getDocs(userQuery);
+  const querySnapshot = await adminDb.collection('users')
+    .where('userId', '==', userId)
+    .get();
   if (querySnapshot.empty) {
     return null;
   }
   const userDoc = querySnapshot.docs[0];
-  return userDoc.exists() ? prepareUser(userDoc.id, userDoc.data()) : null;
+  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
 };
 
 // the proposals key contains a list of all proposal IDs that the user has been invited to
@@ -104,16 +119,25 @@ export const getUserChallenge = async (id: string) => {
 
 export const saveUserLoginCode = async (id: string, code: string, proposalId: string) => {
   console.log('saving code', id, code, proposalId);
-  await updateDoc(doc(db, 'users', id), { login: { code: code, proposalId: proposalId } });
+  await adminDb.collection('users').doc(id).update({ 
+    login: { code: code, proposalId: proposalId } 
+  });
 };
 
 export const saveUserChallenge = async (id: string, challenge: string) => { 
-  await updateDoc(doc(db, 'users', id), { currentChallenge: challenge });
+  console.log('Saving user challenge for ID:', id);
+  try {
+    await adminDb.collection('users').doc(id).update({ 
+      currentChallenge: challenge 
+    });
+    console.log('Challenge saved successfully');
+  } catch (error) {
+    console.error('Error saving user challenge:', error);
+    throw error;
+  }
 };
 
 export const updateUserCredentials = async (id: string, credential: Credential) => {
-  // get user by ID
-  // update user's credentials array with new credential
   const user = await getUserById(id) as User;
   if (!user) {
     throw new Error(`User with ID ${id} not found`);
@@ -126,15 +150,16 @@ export const updateUserCredentials = async (id: string, credential: Credential) 
   };
 
   if (user.credentials?.length === 0) {
-    // is there already a credential with this crendential.credentialID?
-    const existingCredential = user.credentials?.find((cred: Credential) => cred.credentialID === credential.credentialID);
+    const existingCredential = user.credentials?.find(
+      (cred: Credential) => cred.credentialID === credential.credentialID
+    );
     if (existingCredential) {
       throw new Error(`Credential with ID ${credential.credentialID} already exists`);
     }
   }
   
-  await updateDoc(doc(db, 'users', id), {
-    credentials: [newCredential], // Or append to existing credentials
+  await adminDb.collection('users').doc(id).update({
+    credentials: [newCredential],
   });
 };
 
@@ -147,9 +172,7 @@ export const updateUserCredentialCounter = async (
   if (!user) {
     throw new Error(`User with ID ${id} not found`);
   }
-  // update the counter for the credential with the given credentialID
-  // also convert credentialPublicKey from Uint8Array to base64 string so we can save it in Firestore
-  const updatedCredentials = (user.credentials ?? []).map((cred: any) =>
+  const updatedCredentials = (user.credentials ?? []).map((cred: Credential) =>
     cred.credentialID === credentialID
       ? {
           ...cred,
@@ -158,11 +181,10 @@ export const updateUserCredentialCounter = async (
         }
       : cred  
   );
-  await updateDoc(doc(db, 'users', id), { credentials: updatedCredentials });
+  await adminDb.collection('users').doc(id).update({ 
+    credentials: updatedCredentials 
+  });
 };
-
-
-
 
 // add a proposal to the user's list of proposals
 export const addUserProposal = async (email: string, proposalId: string) => {
@@ -174,8 +196,8 @@ export const addUserProposal = async (email: string, proposalId: string) => {
   if (!user || !user.id) {
     throw new Error(`User ID is undefined for email ${email}`);
   }
-  await updateDoc(doc(db, 'users', user.id), {
-      proposals: [...user.proposals || [], proposalId],
+  await adminDb.collection('users').doc(user.id).update({
+    proposals: [...user.proposals || [], proposalId],
   });
 };
 
@@ -186,19 +208,24 @@ export const removeUserProposal = async (email: string, proposalId: string) => {
     throw new Error(`User with email ${email} not found`);
   }
   
-  await updateDoc(doc(db, 'users', user.id), {
+  await adminDb.collection('users').doc(user.id).update({
     proposals: (user.proposals || []).filter((id: string) => id !== proposalId),
   });
+};
 
-  };
-
-  export const prepareUser = (id: string, data: any) => {
-    // map data.credentials to convert credentialPublicKey from base64 string to Uint8Array
-    if (data.credentials) {
-      data.credentials = data.credentials.map((cred: any) => ({
+export const prepareUser = (id: string, data: any) => {
+  console.log('Preparing user data:', { id, hasCredentials: !!data.credentials });
+  if (data.credentials) {
+    try {
+      data.credentials = data.credentials.map((cred: Credential) => ({
         ...cred,
         credentialPublicKey: new Uint8Array(Buffer.from(cred.credentialPublicKey, 'base64')),
       }));
+      console.log('Credentials prepared successfully');
+    } catch (error) {
+      console.error('Error preparing credentials:', error);
+      throw error;
     }
-    return { id, ...data } as User
-  };
+  }
+  return { id, ...data } as User;
+};

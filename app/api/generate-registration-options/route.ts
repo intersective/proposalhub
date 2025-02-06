@@ -6,7 +6,7 @@ import { User, getUserById, saveUserChallenge } from '../../lib/userDatabase';
 
 export const POST = async (req: NextRequest) => {
   const { id } = await req.json();
-  let user = await getUserById(id) as User;
+  const user = await getUserById(id) as User;
 
   if (!user || !user.id) {
     return NextResponse.json({ error: 'User not found' }, { status: 400 });

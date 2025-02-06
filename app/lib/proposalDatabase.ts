@@ -1,56 +1,65 @@
-// lib/userDatabase.ts
-import { db, storage } from './firebase';
+// lib/proposalDatabase.ts
+import { adminDb } from './firebaseAdmin';
+import { getStorage } from 'firebase-admin/storage';
+import { FieldValue } from 'firebase-admin/firestore';
 import { getUserByUserId } from './userDatabase';
-import { doc, collection, getDoc, addDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-export const createProposal = async (userId: string, proposal: any) => {
+const storage = getStorage();
+
+export interface Proposal {
+    id?: string;
+    images?: string[];
+    createdAt: Date;
+    title?: string;
+    description?: string;
+    status?: 'draft' | 'submitted' | 'approved' | 'rejected';
+    metadata?: Record<string, string | number | boolean>;
+}
+
+export const createProposal = async (userId: string, proposal: Proposal) => {
     // Create a new proposal document
-    const proposalRef = await addDoc(collection(db, 'proposals'), proposal);
-    const proposalDoc = await getDoc(proposalRef);
+    const proposalRef = await adminDb.collection('proposals').add(proposal);
     const proposalId = proposalRef.id;
 
     // Update the user document with the proposal ID
-    const user = await getUserById(userId);
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    const userProposals = userDoc.data().proposals || [];
-    userProposals.push(proposalId);
-    await updateDoc(doc(db, 'users', userId), {
-        proposals: userProposals,
+    const user = await getUserByUserId(userId);
+    if (!user || !user.id) {
+        throw new Error('User not found');
+    }
+    
+    const userDoc = await adminDb.collection('users').doc(user.id).get();
+    const userProposals = userDoc.data()?.proposals || [];
+    await adminDb.collection('users').doc(user.id).update({
+        proposals: [...userProposals, proposalId],
     });
 
     return proposalId;
 }
 
-
 export const uploadProposalImages = async (proposalId: string, fileName: string, pdfImageBuffer: Buffer) => {
-
-    const storageRef = ref(storage, fileName);
+    const bucket = storage.bucket();
+    const file = bucket.file(fileName);
 
     // Upload image to Firebase Storage
-    const uploadResult = await uploadBytes(storageRef, pdfImageBuffer);
-    const imageUrl = await getDownloadURL(uploadResult.ref);
-
-    // Update the proposal document with the image URLs
-    await updateDoc(doc(db, 'proposals', proposalId), {
-        images,
+    await file.save(pdfImageBuffer);
+    const [url] = await file.getSignedUrl({
+        action: 'read',
+        expires: '03-01-2500', // Far future expiration
     });
 
+    // Update the proposal document with the image URL
+    await adminDb.collection('proposals').doc(proposalId).update({
+        images: FieldValue.arrayUnion(url),
+    });
 
-        // Store the proposal data in Firestore
-        await setDoc(doc(db, 'proposals', proposalId), {
-            images: imageUrls,
-            createdAt: new Date(),
-        });
-
-    }
+    return url;
 }
 
 export const getUserProposals = async (userId: string) => {
-  // Query Firestore for the user's proposals
-  // Return an array of proposal IDs
-  const userDoc = await getDoc(doc(db, 'proposals', userId));
-  return userDoc.exists() ? userDoc.data().proposals : [];
-}
+    // Query Firestore for the user's proposals
+    // Return an array of proposal IDs
+    const userDoc = await adminDb.collection('proposals').doc(userId).get();
+    return userDoc.exists ? userDoc.data()?.proposals || [] : [];
+};
 
 
