@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeDocument } from '../../../../lib/documentAnalysis';
-import { adminDb } from '../../../../lib/firebaseAdmin';
+import { analyzeDocument } from '@/app/lib/documentAnalysis';
+import { adminDb } from '@/app/lib/firebaseAdmin';
 
 export async function POST(
   req: NextRequest,

@@ -1,4 +1,5 @@
 import { adminDb } from './firebaseAdmin';
+import { CollectionReference, Query } from 'firebase-admin/firestore';
 
 export interface Company {
   id: string;
@@ -7,6 +8,11 @@ export interface Company {
   sector?: string;
   size?: string;
   background?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  logo?: string;
+  proposalCount?: number;
+  clientCount?: number;
   lastUpdated: Date;
   createdAt: Date;
 }
@@ -57,7 +63,7 @@ export async function searchCompanies(query: string) {
 
 export async function searchClients(query: string, companyId?: string) {
   try {
-    let baseQuery = adminDb.collection('clients');
+    let baseQuery = adminDb.collection('clients') as CollectionReference | Query;
     
     if (companyId) {
       baseQuery = baseQuery.where('companyId', '==', companyId);

@@ -10,7 +10,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
 
   const handleLogin = async () => {
-    const response = await fetch('/api/generate-authentication-options', {
+    const response = await fetch('/api/auth/generate-authentication-options', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -24,7 +24,7 @@ const Login: React.FC = () => {
     // the user exists but does not have associated credentials
     // call the api endpoint send-login-link with the post body parameter: passkey
     if (response.status === 401) {
-      await fetch('/api/send-login-link', {
+      await fetch('/api/auth/send-login-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -40,7 +40,7 @@ const Login: React.FC = () => {
     console.log('Options:', options);
     const assertionResponse = await startAuthentication(options);
     console.log('Assertion response:', assertionResponse);
-    const verificationResponse = await fetch('/api/verify-authentication', {
+    const verificationResponse = await fetch('/api/auth/verify-authentication', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

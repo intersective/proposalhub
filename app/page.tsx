@@ -13,7 +13,7 @@ const HomePage: React.FC = () => {
 
   const handleSendMagicLink = async () => {
     try {
-      const response = await fetch('/api/send-login-link', {
+      const response = await fetch('/api/auth/send-login-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

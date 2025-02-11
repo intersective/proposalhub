@@ -1,3 +1,4 @@
+"use client"
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import Cookies from 'js-cookie';
@@ -10,7 +11,7 @@ const Verify: React.FC = () => {
   useEffect(() => {
     const verifyCode = async () => {
       try {
-        const response = await fetch('/api/verify-login-link', {
+        const response = await fetch('/api/auth/verify-login-link', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -32,7 +33,7 @@ const Verify: React.FC = () => {
         if (proposalId == -1) {
           router.push('/proposals');
         } else {
-          router.push(`/proposal/${proposalId}`);
+          router.push(`/proposals/${proposalId}`);
         }
       } catch (error) {
         console.error(error);

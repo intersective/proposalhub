@@ -13,7 +13,7 @@ const openai = new OpenAI({
 
 const MODELS = {
   default: "gpt-4o-mini",
-  fallback: "gpt-o3-mini"
+  fallback: "o3-mini"
 };
 
 const MAX_CHUNK_SIZE = 4000; // Maximum characters per chunk
@@ -413,7 +413,7 @@ async function mergeSectionContent(
 ): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4-0125-preview",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -444,7 +444,7 @@ async function analyzeUnmatchedContent(
 ): Promise<Array<{ content: string; potentialSections: Array<{ sectionId: string; relevance: number }> }>> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4-0125-preview",
+      model: "o3-mini",
       messages: [
         {
           role: "system",

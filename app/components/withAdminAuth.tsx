@@ -9,7 +9,7 @@ const withAdminAuth = (WrappedComponent: React.FC) => {
 
     useEffect(() => {
       const checkAuth = async () => {
-        const res = await fetch('/api/check-auth?admin=1');
+        const res = await fetch('/api/auth/check-auth?admin=1');
         if (res.status === 200) {
           setIsAuthenticated(true);
         } else {

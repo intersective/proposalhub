@@ -41,7 +41,7 @@ export const getUserById = async (id: string) => {
   // Query Firestore for the user by ID
   // Return user data or null
   const userDoc = await adminDb.collection('users').doc(id).get();
-  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
+  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data() as User) : null;
 }
 
 export const getUserByLoginCode = async (loginCode: string) => {
@@ -59,7 +59,7 @@ export const getUserByLoginCode = async (loginCode: string) => {
     return null;
   }
   const userDoc = querySnapshot.docs[0];
-  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
+  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data() as User) : null;
 }
 
 export const getUserByEmail = async (email: string) => {
@@ -85,7 +85,7 @@ export const getUserByEmail = async (email: string) => {
     
     const userDoc = querySnapshot.docs[0];
     console.log('User document exists:', userDoc.exists);
-    return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
+    return userDoc.exists ? prepareUser(userDoc.id, userDoc.data() as User) : null;
   } catch (error) {
     console.error('Error getting user by email:', error);
     throw error;
@@ -103,7 +103,7 @@ export const getUserByUserId = async (userId: string) => {
     return null;
   }
   const userDoc = querySnapshot.docs[0];
-  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data()) : null;
+  return userDoc.exists ? prepareUser(userDoc.id, userDoc.data() as User) : null;
 };
 
 // the proposals key contains a list of all proposal IDs that the user has been invited to
@@ -213,13 +213,13 @@ export const removeUserProposal = async (email: string, proposalId: string) => {
   });
 };
 
-export const prepareUser = (id: string, data: any) => {
+export const prepareUser = (id: string, data: User) => {
   console.log('Preparing user data:', { id, hasCredentials: !!data.credentials });
   if (data.credentials) {
     try {
       data.credentials = data.credentials.map((cred: Credential) => ({
         ...cred,
-        credentialPublicKey: new Uint8Array(Buffer.from(cred.credentialPublicKey, 'base64')),
+        credentialPublicKey: new Uint8Array(Buffer.from(cred.credentialPublicKey.toString(), 'base64')),
       }));
       console.log('Credentials prepared successfully');
     } catch (error) {

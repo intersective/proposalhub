@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useDebounce } from 'use-debounce';
+import { useState, useEffect, useRef, useCallback } from 'react';
+// import { useDebounce } from 'use-debounce';
+import { Sparkles } from 'lucide-react';
 
 export interface Option {
   id: string;
   name: string;
-  [key: string]: string;
+  [key: string]: string | Date | undefined;
 }
 
 interface SearchableDropdownProps {
@@ -17,8 +18,8 @@ interface SearchableDropdownProps {
   showValidation?: boolean;
   onValidate?: (isValid: boolean) => void;
   onSearchAgain?: () => void;
-  placeholder: string;
-  label: string;
+  placeholder?: string;
+  label?: string;
   disabled?: boolean;
 }
 
@@ -27,169 +28,129 @@ export default function SearchableDropdown({
   onChange,
   onSearch,
   onAISearch,
-  showValidation = false,
-  onValidate,
-  onSearchAgain,
-  placeholder,
+  // showValidation = false,
+  // onValidate,
+  // onSearchAgain,
+  placeholder = 'Search...',
   label,
-  disabled = false
+  // disabled = false
 }: SearchableDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [options, setOptions] = useState<Option[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [options, setOptions] = useState<Option[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const lastSearchTerm = useRef<string>('');
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
+    if (value) {
+      setQuery(value.name);
+    }
+  }, [value]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const handleSearch = useCallback(async (searchQuery: string) => {
+    setQuery(searchQuery);
+    if (!searchQuery.trim()) {
+      setOptions([]);
+      return;
+    }
 
-  useEffect(() => {
-    const searchOptions = async () => {
-      if (!debouncedSearchTerm) {
-        setOptions([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const results = await onSearch(debouncedSearchTerm);
-        setOptions(results);
-        if (results.length === 0) {
-          lastSearchTerm.current = debouncedSearchTerm;
-        }
-      } catch (error) {
-        console.error('Error searching options:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    searchOptions();
-  }, [debouncedSearchTerm, onSearch]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setIsOpen(true);
-  };
-
-  const handleOptionClick = (option: Option) => {
-    onChange(option);
-    setSearchTerm('');
-    setIsOpen(false);
-  };
-
-  const handleAISearch = async () => {
-    if (!searchTerm || !onAISearch) return;
-    
     setIsSearching(true);
     try {
-      await onAISearch(searchTerm);
-      lastSearchTerm.current = searchTerm;
-      setSearchTerm('');
-      setIsOpen(false);
+      const results = await onSearch(searchQuery);
+      setOptions(results);
+    } catch (error) {
+      console.error('Error searching:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [onSearch]);
+
+  const handleAISearch = useCallback(async () => {
+    if (!query.trim() || !onAISearch) return;
+
+    setIsSearching(true);
+    try {
+      await onAISearch(query);
     } catch (error) {
       console.error('Error performing AI search:', error);
     } finally {
       setIsSearching(false);
     }
+  }, [query, onAISearch]);
+
+  const handleSelect = (option: Option | null) => {
+    onChange(option);
+    setIsOpen(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && onAISearch) {
-      e.preventDefault();
-      handleAISearch();
-    }
-  };
+  useEffect(() => {
+    const handleCancel = () => {
+      if (value) {
+        setQuery(value.name);
+      } else {
+        setQuery('');
+      }
+      setIsOpen(false);
+    };
+  
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        handleCancel();
+      }
+    };
 
-  const handleSearchAgain = () => {
-    if (onSearchAgain) {
-      onSearchAgain();
-    } else {
-      setSearchTerm(lastSearchTerm.current);
-      setIsOpen(true);
-    }
-  };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [value]);
 
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
       </label>
-      <div className="relative flex">
+      <div className="relative">
         <input
           type="text"
-          className={`flex-1 p-2 border rounded-l-md ${
-            disabled ? 'bg-gray-100 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'
-          } ${onAISearch ? 'rounded-r-none' : 'rounded-r-md'} text-gray-900 dark:text-white border-gray-300 dark:border-gray-600`}
-          placeholder={placeholder}
-          value={searchTerm || value?.name || ''}
-          onChange={handleInputChange}
+          value={query}
+          onChange={(e) => {
+            handleSearch(e.target.value);
+            setIsOpen(true);
+          }}
           onFocus={() => setIsOpen(true)}
-          onKeyDown={handleKeyDown}
-          disabled={disabled || showValidation}
+          placeholder={placeholder}
+          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white pr-20"
         />
-        {onAISearch && !showValidation && (
-          <button
-            onClick={handleAISearch}
-            disabled={!searchTerm || isSearching}
-            className={`px-4 py-2 border border-l-0 rounded-r-md ${
-              isSearching || !searchTerm
-                ? 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
-                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800'
-            } border-gray-300 dark:border-gray-600`}
-          >
-            {isSearching ? (
-              <div className="w-5 h-5 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              'Search'
-            )}
-          </button>
-        )}
-        {value && !showValidation && (
-          <button
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-            onClick={() => {
-              onChange(null);
-              setSearchTerm('');
-            }}
-          >
-            ×
-          </button>
-        )}
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+          {isSearching ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+          ) : (
+            query && (
+              <button
+                onClick={handleAISearch}
+                className="text-blue-500 hover:text-blue-600 focus:outline-none"
+              >
+                <Sparkles className="w-4 h-4" />
+              </button>
+            )
+          )}
+        </div>
       </div>
-      
-      {isOpen && !showValidation && (searchTerm || options.length > 0) && (
-        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-900 shadow-lg rounded-md border border-gray-300 dark:border-gray-600">
-          {isLoading ? (
-            <div className="p-2 text-gray-500 dark:text-gray-400">Loading...</div>
-          ) : options.length > 0 ? (
-            <ul className="max-h-60 overflow-auto">
-              {options.map(option => (
-                <li
-                  key={option.id}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer text-gray-900 dark:text-white"
-                  onClick={() => handleOptionClick(option)}
-                >
-                  {option.name}
-                </li>
-              ))}
-            </ul>
-          ) : searchTerm ? (
-            <div className="p-2 text-gray-500 dark:text-gray-400">
-              No matches found. Press Enter or click Search to try AI search.
-            </div>
-          ) : null}
+      {isOpen && options.length > 0 && (
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 shadow-lg rounded-md border border-gray-200 dark:border-gray-700">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleSelect(option)}
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <div className="font-medium text-gray-900 dark:text-white">{option.name}</div>
+              {option.website && (
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {String(option.website)}
+                </div>
+              )}
+            </button>
+          ))}
         </div>
       )}
     </div>

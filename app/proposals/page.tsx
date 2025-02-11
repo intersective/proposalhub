@@ -161,7 +161,7 @@ export default function ProposalsPage() {
 
       if (response.ok) {
         const { id } = await response.json();
-        router.push(`/admin/proposal/edit/${id}`);
+        router.push(`/admin/proposals/edit/${id}`);
       }
     } catch (error) {
       console.error('Error creating new proposal:', error);
@@ -248,7 +248,7 @@ export default function ProposalsPage() {
                               {proposal.status}
                             </span>
                             <button
-                              onClick={() => router.push(`/admin/proposal/edit/${proposal.id}`)}
+                              onClick={() => router.push(`/admin/proposals/edit/${proposal.id}`)}
                               className="text-blue-600 hover:text-blue-800"
                             >
                               Edit

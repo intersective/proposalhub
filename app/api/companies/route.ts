@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCompany } from '../../lib/companyDatabase';
-import { adminDb } from '../../lib/firebaseAdmin';
+import { createCompany } from '@/app/lib/companyDatabase';
+import { adminDb } from '@/app/lib/firebaseAdmin';
 
 export async function GET() {
   try {
@@ -9,11 +9,26 @@ export async function GET() {
       .orderBy('lastUpdated', 'desc')
       .get();
 
-    const companies = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      lastUpdated: doc.data().lastUpdated.toDate(),
-      createdAt: doc.data().createdAt.toDate()
+    const companies = await Promise.all(snapshot.docs.map(async doc => {
+      const [proposalsSnapshot, clientsSnapshot] = await Promise.all([
+        adminDb.collection('proposals')
+          .where('companyId', '==', doc.id)
+          .count()
+          .get(),
+        adminDb.collection('clients')
+          .where('companyId', '==', doc.id)
+          .count()
+          .get()
+      ]);
+
+      return {
+        id: doc.id,
+        ...doc.data(),
+        proposalCount: proposalsSnapshot.data().count,
+        clientCount: clientsSnapshot.data().count,
+        lastUpdated: doc.data().lastUpdated.toDate(),
+        createdAt: doc.data().createdAt.toDate()
+      };
     }));
 
     return NextResponse.json(companies);

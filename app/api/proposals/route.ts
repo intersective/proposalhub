@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '../../lib/firebaseAdmin';
+import { adminDb } from '@/app/lib/firebaseAdmin';
 import { v4 as uuid } from 'uuid';
 
 export async function GET() {

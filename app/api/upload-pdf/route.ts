@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadProposalImages, createProposal } from '../../lib/proposalDatabase';
+import { uploadProposalImages, createProposal } from '@/app/lib/proposalDatabase';
 import { PDFDocument } from 'pdf-lib';
 import sharp from 'sharp';
 import { v4 as uuid } from 'uuid';

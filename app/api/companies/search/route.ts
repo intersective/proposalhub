@@ -1,22 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { searchCompanies } from '../../../lib/companyDatabase';
+import { NextResponse } from 'next/server';
+import { adminDb } from '@/app/lib/firebaseAdmin';
 
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const q = searchParams.get('q');
+
+  if (!q) {
+    return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
+  }
+
   try {
-    const searchParams = new URL(req.url).searchParams;
-    const query = searchParams.get('q');
+    const snapshot = await adminDb
+      .collection('companies')
+      .where('name', '>=', q)
+      .where('name', '<=', q + '\uf8ff')
+      .orderBy('name')
+      .limit(10)
+      .get();
 
-    if (!query) {
-      return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
-    }
+    const companies = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      lastUpdated: doc.data().lastUpdated.toDate(),
+      createdAt: doc.data().createdAt.toDate()
+    }));
 
-    const companies = await searchCompanies(query);
     return NextResponse.json(companies);
   } catch (error) {
     console.error('Error searching companies:', error);
-    return NextResponse.json(
-      { error: 'Failed to search companies' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to search companies' }, { status: 500 });
   }
 } 
