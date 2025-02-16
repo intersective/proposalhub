@@ -1,38 +1,67 @@
 import type { NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
 import Apple from "next-auth/providers/apple"
-import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
 import LinkedIn from "next-auth/providers/linkedin"
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
+import Credentials from "next-auth/providers/credentials"
 
-export default { 
-    providers: [MicrosoftEntraID, Google, Apple, LinkedIn],
+export const authConfig = {
     pages: {
-        signIn: '/login',
+        signIn: "/signin",
     },
-    callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !!auth?.user
-            const isProtected = 
-                nextUrl.pathname.startsWith('/proposals') ||
-                nextUrl.pathname.startsWith('/admin')
-            
-            if (isProtected) {
-                if (isLoggedIn) return true
-                return false // Redirect unauthenticated users to login page
+    trustHost: true,
+    cookies: {
+        sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: true,
+                domain: process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).hostname : 'localhost'
             }
-            return true
-        },
-        jwt({ token, user }) {
-            if (user) {
-                token.id = user.id
+        }
+    },
+    providers: [
+        Credentials({
+            id: "passkey",
+            name: "Passkey",
+            credentials: {
+                userId: { type: "text" },
+                email: { type: "text" },
+                name: { type: "text" },
+                image: { type: "text" },
+                verified: { type: "boolean" }
+            },
+            async authorize(credentials) {
+                if (!credentials?.userId || !credentials?.verified) {
+                    return null;
+                }
+                return {
+                    id: credentials.userId.toString(),
+                    email: credentials.email?.toString() || credentials.userId.toString(),
+                    name: credentials.name?.toString() || null,
+                    image: credentials.image?.toString() || null
+                };
             }
-            return token
-        },
-        session({ session, token }) {
-            if (session.user) {
-                session.user.id = token.id as string
-            }
-            return session
-        },
-    }
+        }),
+        LinkedIn({
+            clientId: process.env.LINKEDIN_ID!,
+            clientSecret: process.env.LINKEDIN_SECRET!,
+        }),
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
+        Apple({
+            clientId: process.env.APPLE_ID!,
+            clientSecret: process.env.APPLE_SECRET!,
+        }),
+        MicrosoftEntraID({
+            clientId: process.env.AZURE_AD_CLIENT_ID!,
+            clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
+        }),
+    ],
 } satisfies NextAuthConfig
+
+export default authConfig

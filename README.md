@@ -2,7 +2,7 @@ Proposal Hub
 
 A platform for creating and managing proposals.
 
-Proposal Hub is a platform for creating and managing proposals. It is a web application that allows users to create proposals, send them to clients, and track their progress.
+Proposal Hub is a platform for creating and managing proposals. It is a web application that allows users to create proposals, send them to contacts, and track their progress.
 
 Key Features:
 - Store all proposals in one place
@@ -10,16 +10,16 @@ Key Features:
     - Uses AI to generate a proposal from notes, a meeting transcript, or a Q&A chat
   - Upload existing PDF proposals  
     - Uses AI to extract content from PDF
-- Send links to proposals to clients via email and/or SMS
+- Send links to proposals to contacts via email and/or SMS
   - Proposals are securely viewed online
   - Track proposal read stats including opens, view times per page, and time to first view
-  - Clients can add questions and comments for the proposal creator
-  - Clients can create a link to share with others
-  - *V2* Clients can "chat with the proposal" - ask an AI agent questions about the proposal
+  - Contacts can add questions and comments for the proposal creator
+  - Contacts can create a link to share with others
+  - *V2* Contacts can "chat with the proposal" - ask an AI agent questions about the proposal
 - *V2* Proposal creator can update the proposal in response to feedback
   - Changes will be highlighted in the proposal (dynamic proposals only)
-  - Clients will be notified of the changes
-- *V2* Solicit and track feedback from clients
+  - Contacts will be notified of the changes
+- *V2* Solicit and track feedback from contacts
   - Feedback requests sent via email / SMS
   - Can respond via email / SMS or click on web link
   - Track feedback responses

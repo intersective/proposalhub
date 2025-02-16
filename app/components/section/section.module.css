@@ -1,0 +1,121 @@
+.tiptap * + * {
+  margin-top: 0.75em;
+}
+
+.tiptap h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+
+.tiptap h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.tiptap ul ul,
+.tiptap ol ul {
+  list-style-type: circle;
+}
+
+.tiptap ul ul ul,
+.tiptap ol ul ul {
+  list-style-type: square;
+}
+
+.tiptap ol ol,
+.tiptap ul ol {
+  list-style-type: lower-alpha;
+}
+
+.tiptap ol ol ol,
+.tiptap ul ol ol {
+  list-style-type: lower-roman;
+}
+
+.tiptap code {
+  background-color: rgba(97, 97, 97, 0.1);
+  color: #616161;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.875em;
+}
+
+.tiptap pre {
+  background: #0D0D0D;
+  color: #FFF;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.tiptap pre code {
+  color: inherit;
+  padding: 0;
+  background: none;
+  font-size: 0.8rem;
+}
+
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+}
+
+.tiptap blockquote {
+  padding-left: 1rem;
+  border-left: 2px solid rgba(13, 13, 13, 0.1);
+  color: rgba(13, 13, 13, 0.8);
+  font-style: italic;
+}
+
+.tiptap hr {
+  border: none;
+  border-top: 2px solid rgba(13, 13, 13, 0.1);
+  margin: 2rem 0;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+/* Dark mode styles */
+:global(.dark) .tiptap code {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+:global(.dark) .tiptap pre {
+  background: #1a1a1a;
+}
+
+:global(.dark) .tiptap blockquote {
+  border-left-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:global(.dark) .tiptap hr {
+  border-top-color: rgba(255, 255, 255, 0.1);
+} 

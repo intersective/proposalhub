@@ -10,15 +10,15 @@ export async function GET() {
     const querySnapshot = await adminDb
       .collection('proposals')
       .where('status', '==', 'draft')
-      .where('lastUpdated', '>=', thirtyDaysAgo)
-      .orderBy('lastUpdated', 'desc')
+      .where('updatedAt', '>=', thirtyDaysAgo)
+      .orderBy('updatedAt', 'desc')
       .limit(10)
       .get();
 
     const drafts = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      lastUpdated: doc.data().lastUpdated.toDate()
+      updatedAt: doc.data().updatedAt.toDate()
     }));
 
     return NextResponse.json(drafts);

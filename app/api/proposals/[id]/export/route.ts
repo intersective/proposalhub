@@ -17,9 +17,9 @@ interface Proposal {
   title?: string;
   sections: Section[];
   status: 'draft' | 'submitted' | 'approved' | 'rejected';
-  lastUpdated: Date;
-  companyId?: string;
-  clientId?: string;
+  updatedAt: Date;
+  organizationId?: string;
+  contactId?: string;
 }
 
 const openai = new OpenAI({
@@ -78,19 +78,19 @@ Output should be in markdown format compatible with RevealJS.`
   }
 }
 
-async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern', brandType: 'client' | 'service' = 'client', primaryColor = '#2563eb', secondaryColor = '#1e40af') {
+async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern', brandType: 'contact' | 'service' = 'contact', primaryColor = '#2563eb', secondaryColor = '#1e40af') {
   const template = TEMPLATES.find(t => t.id === templateId);
   const isPresentation = template?.type === 'presentation';
   console.log('brandType', brandType);
-  // Get company and client info from sections
-  const companySection = proposal.sections.find((s: Section) => s.id === 'companyInfo');
-  const clientSection = proposal.sections.find((s: Section) => s.id === 'clientInfo');
-  const companyInfo = companySection?.content as Record<string, string> || {};
-  const clientInfo = clientSection?.content as Record<string, string> || {};
+  // Get organization and contact info from sections
+  const organizationSection = proposal.sections.find((s: Section) => s.id === 'organizationInfo');
+  const contactSection = proposal.sections.find((s: Section) => s.id === 'contactInfo');
+  const organizationInfo = organizationSection?.content as Record<string, string> || {};
+  const contactInfo = contactSection?.content as Record<string, string> || {};
 
   // Get content sections
   const contentSections = proposal.sections.filter(s => 
-    s.id !== 'companyInfo' && s.id !== 'clientInfo' && s.type === 'text'
+    s.id !== 'organizationInfo' && s.id !== 'contactInfo' && s.type === 'text'
   );
 
   // If it's a presentation template, format the content appropriately
@@ -115,14 +115,14 @@ async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern
       --secondary-color-light: ${secondaryColor}22;
       --gradient-bg: linear-gradient(135deg, var(--primary-color-light) 0%, var(--secondary-color-light) 100%);
     }
-    .company-section {
+    .organization-section {
       color: var(--primary-color);
       border-color: var(--secondary-color);
     }
-    .company-section .company-name {
+    .organization-section .organization-name {
       color: var(--primary-color);
     }
-    .company-section .company-details {
+    .organization-section .organization-details {
       color: var(--secondary-color);
     }
   `;
@@ -149,11 +149,11 @@ async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern
       </head>
       <body class="gradient-bg min-h-screen">
         <div class="proposal-section bg-white shadow-xl rounded-lg my-8 p-8">
-          <header class="text-center mb-12 pb-8 border-b company-section">
+          <header class="text-center mb-12 pb-8 border-b organization-section">
             <h1 class="text-4xl font-bold mb-4">${proposal.title || 'Proposal'}</h1>
-            <div class="company-details">
-              <p class="font-medium text-lg company-name">${companyInfo.name || ''}</p>
-              <p class="text-lg">Prepared for: ${clientInfo.name || ''}</p>
+            <div class="organization-details">
+              <p class="font-medium text-lg organization-name">${organizationInfo.name || ''}</p>
+              <p class="text-lg">Prepared for: ${contactInfo.name || ''}</p>
               <p class="mt-2 text-sm">${new Date().toLocaleDateString()}</p>
             </div>
           </header>
@@ -185,12 +185,12 @@ async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern
         </style>
       </head>
       <body class="bg-gray-50">
-        <div class="corporate-gradient text-white py-16 mb-8 company-section">
+        <div class="corporate-gradient text-white py-16 mb-8 organization-section">
           <div class="proposal-section">
             <h1 class="text-5xl font-bold mb-4">${proposal.title || 'Proposal'}</h1>
-            <div class="opacity-90 company-details">
-              <p class="font-medium text-xl company-name">${companyInfo.name || ''}</p>
-              <p class="text-lg">Prepared for: ${clientInfo.name || ''}</p>
+            <div class="opacity-90 organization-details">
+              <p class="font-medium text-xl organization-name">${organizationInfo.name || ''}</p>
+              <p class="text-lg">Prepared for: ${contactInfo.name || ''}</p>
               <p class="mt-2">${new Date().toLocaleDateString()}</p>
             </div>
           </div>
@@ -246,10 +246,10 @@ async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern
         <div class="reveal">
           <div class="slides">
             <!-- Title Slide -->
-            <section class="company-section">
+            <section class="organization-section">
               <h1>${proposal.title || 'Proposal'}</h1>
-              <p class="text-xl mb-8 fragment company-name">${companyInfo.name || ''}</p>
-              <p class="text-lg fragment company-details">Prepared for: ${clientInfo.name || ''}</p>
+              <p class="text-xl mb-8 fragment organization-name">${organizationInfo.name || ''}</p>
+              <p class="text-lg fragment organization-details">Prepared for: ${contactInfo.name || ''}</p>
               <p class="text-sm mt-4 fragment">${new Date().toLocaleDateString()}</p>
             </section>
             
@@ -352,8 +352,8 @@ async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern
             <!-- Title Slide -->
             <section>
               <h1 class="fragment">${proposal.title || 'Proposal'}</h1>
-              <p class="text-xl mb-8 fragment">${companyInfo.name || ''}</p>
-              <p class="text-lg fragment">Prepared for: ${clientInfo.name || ''}</p>
+              <p class="text-xl mb-8 fragment">${organizationInfo.name || ''}</p>
+              <p class="text-lg fragment">Prepared for: ${contactInfo.name || ''}</p>
               <p class="text-sm mt-4 fragment">${new Date().toLocaleDateString()}</p>
             </section>
             
@@ -464,8 +464,8 @@ async function generateHTML(proposal: Proposal, templateId: TemplateId = 'modern
             <!-- Title Slide -->
             <section>
               <h1 class="fragment">${proposal.title || 'Proposal'}</h1>
-              <p class="text-xl mb-8 fragment">${companyInfo.name || ''}</p>
-              <p class="text-lg fragment">Prepared for: ${clientInfo.name || ''}</p>
+              <p class="text-xl mb-8 fragment">${organizationInfo.name || ''}</p>
+              <p class="text-lg fragment">Prepared for: ${contactInfo.name || ''}</p>
               <p class="text-sm mt-4 fragment">${new Date().toLocaleDateString()}</p>
             </section>
             
@@ -518,21 +518,21 @@ async function generateMarkdown(proposal: Proposal) {
   const sections = proposal.sections || [];
   let markdown = `# ${proposal.title || 'Proposal'}\n\n`;
 
-  // Add company and client info
-  const companySection = sections.find((s: Section) => s.id === 'companyInfo');
-  const clientSection = sections.find((s: Section) => s.id === 'clientInfo');
+  // Add organization and contact info
+  const organizationSection = sections.find((s: Section) => s.id === 'organizationInfo');
+  const contactSection = sections.find((s: Section) => s.id === 'contactInfo');
 
-  if (companySection?.content) {
-    markdown += '## Company Information\n\n';
-    Object.entries(companySection.content).forEach(([key, value]) => {
+  if (organizationSection?.content) {
+    markdown += '## Organization Information\n\n';
+    Object.entries(organizationSection.content).forEach(([key, value]) => {
       markdown += `- **${key}**: ${value}\n`;
     });
     markdown += '\n';
   }
 
-  if (clientSection?.content) {
-    markdown += '## Client Information\n\n';
-    Object.entries(clientSection.content).forEach(([key, value]) => {
+  if (contactSection?.content) {
+    markdown += '## Contact Information\n\n';
+    Object.entries(contactSection.content).forEach(([key, value]) => {
       markdown += `- **${key}**: ${value}\n`;
     });
     markdown += '\n';
@@ -540,7 +540,7 @@ async function generateMarkdown(proposal: Proposal) {
 
   // Add content sections
   sections
-    .filter((s: Section) => s.id !== 'companyInfo' && s.id !== 'clientInfo')
+    .filter((s: Section) => s.id !== 'organizationInfo' && s.id !== 'contactInfo')
     .forEach((section: Section) => {
       markdown += `## ${section.title}\n\n${section.content || ''}\n\n`;
     });
@@ -566,7 +566,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const format = searchParams.get('format') || 'html';
     const templateId = searchParams.get('template') as TemplateId || 'modern';
     //const type = searchParams.get('type') || 'document';
-    const brandType = searchParams.get('brandType') as 'client' | 'service' || 'client';
+    const brandType = searchParams.get('brandType') as 'contact' | 'service' || 'contact';
     const primaryColor = searchParams.get('primaryColor') || '#2563eb';
     const secondaryColor = searchParams.get('secondaryColor') || '#1e40af';
     const { id } = await params;

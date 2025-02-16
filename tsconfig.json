@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "../scraper/misc/ProposalEdit.old.tsx", "../scraper/misc/ProposalSection.tsx", "../scraper/misc/ProposalSectionOrig.tsx"  ],
   "exclude": [
     "node_modules"
   ]

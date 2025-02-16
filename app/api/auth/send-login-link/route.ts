@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { v4 as uuidv4 } from 'uuid';
-import { User, getUserByEmail, saveUserLoginCode } from '@/app/lib/userDatabase';
+import { User, getUserByEmail, saveUserLoginCode } from '@/app/lib/database/userDatabase';
 
 export const POST = async (req: NextRequest) => {
     const { mode, email, proposalId } = await req.json();

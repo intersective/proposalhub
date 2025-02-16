@@ -8,7 +8,7 @@ const HomePage: React.FC = () => {
   const [email, setEmail] = useState('');
 
   const handleAdminLogin = () => {
-    router.push('/admin/dashboard');
+    router.push('/manage/dashboard');
   };
 
   const handleSendMagicLink = async () => {
@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col  dark:bg-gray-900">
       <div className="relative h-[33vh] bg-gray-800 flex items-center justify-center">
         <div className="absolute inset-0">
           <Image

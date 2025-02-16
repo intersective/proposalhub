@@ -1,32 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/app/lib/firebaseAdmin';
+import { getProposalsByContactId, createProposal } from '@/app/lib/database/proposalDatabase';
 import { v4 as uuid } from 'uuid';
-
+import { auth } from '@/auth';
+import { ProposalRecord } from '@/app/types/proposal';
 export async function GET() {
-  try {
-    const snapshot = await adminDb
-      .collection('proposals')
-      .orderBy('lastUpdated', 'desc')
-      .get();
-
-    const proposals = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      lastUpdated: doc.data().lastUpdated.toDate(),
-      createdAt: doc.data().createdAt.toDate()
-    }));
-
-    return NextResponse.json(proposals);
-  } catch (error) {
-    console.error('Error fetching proposals:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch proposals' },
-      { status: 500 }
-    );
+  const session = await auth();
+  if (!session?.user?.id || !session.user.profile?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const proposals = await getProposalsByContactId(session.user.profile.id, session.user.profile.organizationId);
+  console.log('proposals', proposals);
+  if (!proposals) {
+    console.log('No proposals found');
+    return NextResponse.json({ error: 'No proposals found' }, { status: 404 });
+  }
+  return NextResponse.json(proposals);
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const { status, sections } = await req.json();
 
@@ -34,13 +29,13 @@ export async function POST(req: NextRequest) {
     const proposalId = uuid();
     const now = new Date();
 
-    await adminDb.collection('proposals').doc(proposalId).set({
+    await createProposal(session.user.id, {
       id: proposalId,
       status: status || 'draft',
       sections: sections || [],
       createdAt: now,
-      lastUpdated: now
-    });
+      updatedAt: now
+    } as ProposalRecord);
 
     return NextResponse.json({ id: proposalId });
   } catch (error) {

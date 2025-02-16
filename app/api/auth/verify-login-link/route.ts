@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { User, getUserByLoginCode } from '@/app/lib/userDatabase';
+import { User, getUserByLoginCode } from '@/app/lib/database/userDatabase';
 
 export async function POST(req: NextRequest) {
     const { code } = await req.json();

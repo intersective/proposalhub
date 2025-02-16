@@ -20,7 +20,7 @@ export async function GET(
       id: doc.id,
       ...doc.data(),
       sections: doc.data()?.sections || [],
-      lastUpdated: doc.data()?.lastUpdated.toDate(),
+      updatedAt: doc.data()?.updatedAt.toDate(),
       createdAt: doc.data()?.createdAt.toDate()
     });
   } catch (error) {
@@ -32,7 +32,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -43,7 +43,7 @@ export async function PATCH(
 
     await adminDb.collection('proposals').doc(id).update({
       ...data,
-      lastUpdated: now
+      updatedAt: now
     });
 
     const updatedDoc = await adminDb.collection('proposals').doc(id).get();
@@ -51,7 +51,7 @@ export async function PATCH(
       id: updatedDoc.id,
       ...updatedDoc.data(),
       sections: updatedDoc.data()?.sections || [],
-      lastUpdated: updatedDoc.data()?.lastUpdated.toDate(),
+      updatedAt: updatedDoc.data()?.updatedAt.toDate(),
       createdAt: updatedDoc.data()?.createdAt.toDate()
     });
   } catch (error) {

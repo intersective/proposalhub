@@ -1,7 +1,7 @@
 // pages/api/auth/check-auth.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { parse } from 'cookie';
-import { getUserById } from '@/app/lib/userDatabase';
+import { getUserById } from '@/app/lib/database/userDatabase';
 import { verify } from '@/app/lib/auth';
 
 export const GET = async (req: NextRequest) => {

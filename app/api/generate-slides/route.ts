@@ -10,15 +10,19 @@ interface Section {
   title: string;
   content: string | Record<string, string>;
   type: 'text' | 'fields';
+  images?: {
+    background?: string[];
+    content?: string[];
+  };
 }
 
 export async function POST(req: NextRequest) {
   try {
     const { sections }: { sections: Section[] } = await req.json();
     
-    // Filter out non-text sections and company/client info
+    // Filter out non-text sections and organization/contact info
     const contentSections = sections.filter((s: Section) => 
-      s.type === 'text' && s.id !== 'companyInfo' && s.id !== 'clientInfo'
+      s.type === 'text' && s.id !== 'organizationInfo' && s.id !== 'contactInfo'
     );
 
     const response = await openai.chat.completions.create({
