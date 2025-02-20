@@ -419,49 +419,60 @@ export default function ProposalEditorClient({ proposalId, initialTab = 'analysi
       />
       
       <div className="mx-auto">
-        {activeTab === 'analysis' && (
-          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-              <AnalysisTab proposalId={proposalId} />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'requirements' && (
-          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-              <RequirementsTab 
-                proposalId={proposalId} 
-                proposal={proposal}
-                onUpdate={async (data: Partial<Requirements>) => {
-                  try {
-                    const response = await fetch(`/api/proposals/${proposalId}/requirements`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(data)
-                    });
-                    if (!response.ok) throw new Error('Failed to update requirements');
-                  } catch (error) {
-                    console.error('Error updating requirements:', error);
-                  }
-                }} 
+        {/* Main content grid */}
+        <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-8rem)]">
+          {/* Chat Container - Left on desktop, bottom on mobile */}
+          <div className="fixed lg:relative lg:col-span-1 shadow 
+              lg:h-full lg:ps-4 md:p-0 sm:px-0
+              bottom-0 left-0 right-0 
+              lg:bottom-auto lg:left-auto lg:right-auto
+              z-10">
+            <div className="bg-white dark:bg-gray-800 shadow h-full">
+              <ChatContainer
+                proposalId={proposalId}
+                onSectionUpdate={handleSectionUpdate}
+                onSectionImprove={handleSectionImprove}
+                onDocumentAnalysis={handleDocumentAnalysis}
+                currentSection={currentSection}
+                onSetCurrentSection={setCurrentSection}
+                isImproving={Object.values(improvingSections).some(Boolean)}
+                sections={proposal.sections}
+                onDraftingSectionsUpdate={setDraftingSections}
               />
             </div>
           </div>
-        )}
 
-        {activeTab === 'team' && (
-          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-              <DeliveryTeamTab proposalId={proposalId} />
-            </div>
-          </div>
-        )}
+          {/* Proposal Editor - Right on desktop, main area on mobile */}
+          <div className="lg:col-span-2 overflow-y-auto shadow lg:pe-4 md:p-0 sm:px-0 pb-16 lg:pb-0">
+            <div className="bg-white dark:bg-gray-800 shadow xs:rounded-lg">
+              {activeTab === 'analysis' && (
+                <AnalysisTab proposalId={proposalId} />
+              )}
 
-        {activeTab === 'content' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-8rem)] overflow-hidden">
-            <div className="lg:col-span-2 overflow-y-auto shadow lg:ps-4 md:p-0 sm:px-0">
-              <div className="bg-white dark:bg-gray-800 shadow xs:rounded-lg">
+              {activeTab === 'requirements' && (
+                <RequirementsTab 
+                  proposalId={proposalId} 
+                  proposal={proposal}
+                  onUpdate={async (data: Partial<Requirements>) => {
+                    try {
+                      const response = await fetch(`/api/proposals/${proposalId}/requirements`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                      });
+                      if (!response.ok) throw new Error('Failed to update requirements');
+                    } catch (error) {
+                      console.error('Error updating requirements:', error);
+                    }
+                  }} 
+                />
+              )}
+
+              {activeTab === 'team' && (
+                <DeliveryTeamTab proposalId={proposalId} />
+              )}
+
+              {activeTab === 'content' && (
                 <div className="px-4 py-5 sm:p-6">
                   <SectionCollection
                     sections={proposal.sections}
@@ -478,48 +489,22 @@ export default function ProposalEditorClient({ proposalId, initialTab = 'analysi
                     onRemoveContact={handleRemoveSectionContact}
                   />
                 </div>
-              </div>
-            </div>
+              )}
 
-            <div className="lg:col-span-1 shadow sticky lg:pe-4 md:p-0 sm:px-0">
-              <div className="bg-white dark:bg-gray-800 shadow h-full">
-                <div className="h-full">
-                  <ChatContainer
-                    proposalId={proposalId}
-                    onSectionUpdate={handleSectionUpdate}
-                    onSectionImprove={handleSectionImprove}
-                    onDocumentAnalysis={handleDocumentAnalysis}
-                    currentSection={currentSection}
-                    onSetCurrentSection={setCurrentSection}
-                    isImproving={Object.values(improvingSections).some(Boolean)}
-                    sections={proposal.sections}
-                    onDraftingSectionsUpdate={setDraftingSections}
-                  />
-                </div>
-              </div>
+              {activeTab === 'layout' && (
+                <LayoutTab 
+                  proposalId={proposalId} 
+                />
+              )}
+
+              {activeTab === 'share' && (
+                <ShareTab 
+                  proposalId={proposalId} 
+                />
+              )}
             </div>
           </div>
-        )}
-
-        {activeTab === 'layout' && (
-            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-              <LayoutTab 
-                proposalId={proposalId} 
-              />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'share' && (
-           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-           <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-             <ShareTab 
-               proposalId={proposalId} 
-             />
-           </div>
-         </div>
-        )}
+        </div>
       </div>
 
       <ContactSearchModal

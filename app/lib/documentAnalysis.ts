@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { marked } from 'marked';
-
+import { convertToMarkdown } from '@/app/lib/fileConversion';
 if (!process.env.OPENAI_API_KEY) {
   console.error('Warning: OPENAI_API_KEY is not set in environment variables');
 }
@@ -68,7 +68,7 @@ export interface DocumentAnalysisResult {
 export async function analyzeDocument(
   documentContent: string,
   existingSections: Section[],
-  documentType: 'pdf' | 'markdown' = 'markdown',
+  documentType: string,
   onProgress?: ProgressCallback,
   signal?: AbortSignal
 ): Promise<DocumentAnalysisResult> {
@@ -78,9 +78,17 @@ export async function analyzeDocument(
     throw new Error('Analysis cancelled');
   }
 
-  const standardizedContent = documentType === 'markdown' 
-    ? documentContent 
-    : await convertPDFToText(documentContent);
+  let standardizedContent = documentContent;
+
+  if (documentType === 'url') {
+    const response = await fetch(documentContent);
+    const contentType = response.headers.get('content-type') || 'text/plain';
+    const result = await convertToMarkdown(await response.blob(), contentType);
+    standardizedContent = result.content;
+  } else {
+    const result = await convertToMarkdown(new Blob([documentContent]), documentType);
+    standardizedContent = result.content;
+  }
 
   // Split content into manageable chunks
   const chunks = splitIntoChunks(standardizedContent);
@@ -343,11 +351,6 @@ async function identifySections(content: string): Promise<Array<{ title: string;
   }
 }
 
-async function convertPDFToText(pdfContent: string): Promise<string> {
-  // For now, assume the content is already text
-  // TODO: Implement PDF text extraction
-  return pdfContent;
-}
 
 async function findSectionMatches(
   uploadedSection: { title: string; content: string },

@@ -42,10 +42,11 @@ export default function ProposalTabs<T extends string>({
   };
 
   return (
-    <div className="sticky top-0 z-10 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+    <div className="sticky top-0 z-30 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="px-4 sm:px-6 lg:px-8 py-2">
-        <div className="flex justify-between items-center">
-          <div className="min-w-0 flex-1">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          {/* Title - moves below tabs on mobile */}
+          <div className="min-w-0 order-2 sm:order-1 mt-3 sm:mt-0">
             {isEditingTitle ? (
               <input
                 type="text"
@@ -71,7 +72,7 @@ export default function ProposalTabs<T extends string>({
             )}
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-end space-x-4 order-1 sm:order-2">
             {/* Tab Pills */}
             <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
               {tabs.map((tab) => (
@@ -89,7 +90,7 @@ export default function ProposalTabs<T extends string>({
                 </button>
               ))}
             </div>
-
+            <div className="flex sm:flex-grow" />
             {/* Menu Buttons */}
             {menuButtons?.map((button) => (
               <div key={button.id} className="relative">
@@ -104,10 +105,10 @@ export default function ProposalTabs<T extends string>({
                   className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   {button.icon}
-                  <span className="ml-2">{button.label}</span>
+                  <span className="ml-2 hidden sm:inline">{button.label}</span>
                 </button>
                 {button.dropdownItems && openDropdown === button.id && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5">
+                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
                     {button.dropdownItems.map((item, index) => (
                       item.href ? (
                         <a

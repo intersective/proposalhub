@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import TeamPageClient from './TeamPageClient';
+import OpportunitiesPageClient from './OpportunitiesPageClient';
 import { auth } from '@/auth';
 
-export default async function TeamPage() {
+export default async function RFPsPage() {
   const session = await auth();
   
   if (!session?.user?.email) {
@@ -12,7 +12,7 @@ export default async function TeamPage() {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <TeamPageClient />
+      <OpportunitiesPageClient />
     </Suspense>
   );
 } 

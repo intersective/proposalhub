@@ -18,5 +18,20 @@ export interface ContactRecord {
 export interface Contact extends ContactRecord {
   organization?: Organization;
   role: string | null;
+  name: string;
+  imageUrl?: string;
+  ownerOrganizationId: string;
+  skills?: string[];
+  credentials?: {
+    degrees?: string[];
+    pastRoles?: string[];
+    certifications?: string[];
+  };
+  portfolio?: {
+    id: string;
+    title: string;
+    url: string;
+    description?: string;
+  }[];
 }
 

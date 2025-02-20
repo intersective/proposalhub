@@ -14,7 +14,7 @@ Features to create:
 
 /manage/team - The purpose of this section is to show the contacts that are available to be assigned to proposals created by the organization. We can search contacts that are already associated with the organization and add them to the team. We can also create new contacts via the team section. Not all organization contacts will be in the team.
 
-/manage/rfps - The purpose of this section is to show the RFPs that have been received and requested by the organization. An RFP can be added by giving a URL to an RFP or uploading an RFP doc/pdf. The RFP will be parsed and the data will be used to populate an RFP entry. The RFP entry will be used to generate a proposal. It is also possible to reverse the process and use a proposal to create an RFP.
+/manage/opportunities - The purpose of this section is to show the RFPs that have been received and requested by the organization. An RFP can be added by giving a URL to an RFP or uploading an RFP doc/pdf. The RFP will be parsed and the data will be used to populate an RFP entry. The RFP entry will be used to generate a proposal. It is also possible to reverse the process and use a proposal to create an RFP.
 
 The tabs of the /manage/proposals section are:
 - Analysis

@@ -1,18 +1,22 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import ProposalsPageClient from '@/app/manage/proposals/ProposalsPageClient';
+import TeamPageClient from './TeamPageClient';
 import { auth } from '@/auth';
 
-export default async function ProposalsPage() {
+export default async function TeamPage() {
   const session = await auth();
-  console.log('proposal page session', session);
+  
   if (!session?.user?.email) {
     redirect('/signin');
   }
 
+  if (!session.user.profile?.organizationId) {
+    redirect('/onboarding');
+  }
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ProposalsPageClient />
+      <TeamPageClient organizationId={session.user.profile.organizationId} />
     </Suspense>
   );
 } 

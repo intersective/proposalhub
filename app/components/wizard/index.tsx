@@ -53,7 +53,7 @@ export default function Wizard({ steps, onComplete, currentStep = 0, onStepChang
       <nav aria-label="Progress" className="mb-8">
         <ol role="list" className="flex items-center">
           {steps.map((step, index) => (
-            <li key={step.id} className={`relative ${index !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}>
+            <li key={step.id} className={`relative flex-grow ${index !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}>
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
                 {index !== steps.length - 1 && (
                   <div className={`h-0.5 w-full ${index < activeStep ? 'bg-blue-600' : 'bg-gray-200'}`} />

@@ -34,8 +34,8 @@ export default function Navigation() {
             {/* Navigation Links */}
             <div className="hidden sm:flex sm:space-x-8 mr-8">
               {[
+                { name: 'Opportunities', href: '/manage/opportunities' },
                 { name: 'Proposals', href: '/manage/proposals' },
-                { name: 'RFPs', href: '/manage/rfps' },
                 { name: 'Solutions', href: '/manage/solutions' },
                 { name: 'Customers', href: '/manage/organizations' },
                 { name: 'Team', href: '/manage/team' },

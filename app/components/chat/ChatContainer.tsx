@@ -57,9 +57,19 @@ Just start typing or drop a document to begin!`
     }
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const abortController = useRef<AbortController>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Handle auto-expand on input focus
+  const handleInputFocus = useCallback(() => {
+    setIsExpanded(true);
+  }, []);
+
+  const handleToggleExpand = useCallback(() => {
+    setIsExpanded(prev => !prev);
+  }, []);
 
   const actions = useMemo<ChatActions>(() => ({
     addMessage: (message: Message) => {
@@ -453,7 +463,7 @@ ${content}
   return (
     <div {...getRootProps()} className="flex flex-col h-full relative">
       <input {...getInputProps()} />
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className={`flex-1 overflow-y-auto p-6 ${!isExpanded ? 'hidden sm:block' : ''}`}>
         {state.messages.map((message, index) => (
           <ChatMessage
             key={index}
@@ -483,6 +493,9 @@ ${content}
         onSubmit={handleSubmit}
         disabled={isProcessing}
         currentSection={currentSection}
+        isExpanded={isExpanded}
+        onToggleExpand={handleToggleExpand}
+        onFocus={handleInputFocus}
       />
     </div>
   );

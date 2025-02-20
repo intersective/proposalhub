@@ -9,35 +9,35 @@ export async function GET(req: NextRequest) {
   }
   const { searchParams } = new URL(req.url);
   const q = searchParams.get('q');
-  const organizationId = searchParams.get('organizationId') || session.user.profile?.organizationId;
+  const organizationId = searchParams.get('organizationId');
   const ownerOrganizationId = session.user.profile?.organizationId;
-  if (!organizationId || !ownerOrganizationId) {
+  
+  if (!ownerOrganizationId) {
     return NextResponse.json({ error: 'Organization ID is required' }, { status: 400 });
   }
-  // Check if the organizationId is owned by the current user's organization
-  const organizationSnapshot = await adminDb
-    .collection('organizations')
-    .where('ownerOrganizationId', '==', ownerOrganizationId)
-    .where('organizationId', '==', organizationId)
-    .limit(1)
-    .get();
 
-  if (organizationSnapshot.empty) {
-    return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-  }
-  
   try {
-    let query = adminDb.collection('contacts')
+    // Build the base query
+    const contactsRef = adminDb.collection('contacts');
+    let baseQuery = contactsRef
+    .where('ownerOrganizationId', '==', ownerOrganizationId);
+
+    if (organizationId) {
+      // Create the query with organization filter
+      baseQuery = baseQuery
       .where('organizationId', '==', organizationId)
-      .orderBy('name')
-      .limit(10);
+    }
+
+    // Add name search if query provided
     if (q) {
-      query = query
+      baseQuery = baseQuery
         .where('name', '>=', q)
         .where('name', '<=', q + '\uf8ff');
     }
+    
+    baseQuery = baseQuery.orderBy('name').limit(10);
 
-    const snapshot = await query.get();
+    const snapshot = await baseQuery.get();
     const contacts = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Navigation from '@/app/components/navigation';
 import { FileText, Upload, Link as LinkIcon, Plus } from 'lucide-react';
 
-interface RFP {
+interface Opportunity {
   id: string;
   title: string;
   organization: string;
@@ -16,8 +16,8 @@ interface RFP {
   sourceFile?: string;
 }
 
-export default function RFPsPageClient() {
-  const [rfps, setRfps] = useState<RFP[]>([]);
+export default function OpportunitiesPageClient() {
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addMethod, setAddMethod] = useState<'url' | 'file' | 'manual' | null>(null);
@@ -26,29 +26,29 @@ export default function RFPsPageClient() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const fetchRFPs = async () => {
+    const fetchOpportunities = async () => {
       try {
-        const response = await fetch('/api/rfps');
+        const response = await fetch('/api/opportunities');
         if (response.ok) {
           const data = await response.json();
-          setRfps(data);
+          setOpportunities(data);
         }
       } catch (error) {
-        console.error('Error fetching RFPs:', error);
+        console.error('Error fetching Opportunities:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchRFPs();
+    fetchOpportunities();
   }, []);
 
-  const handleAddRFP = async () => {
+  const handleAddOpportunity = async () => {
     if (!addMethod) return;
 
     setIsProcessing(true);
     try {
-      let formData = new FormData();
+      const formData = new FormData();
       
       if (addMethod === 'url' && url) {
         formData.append('url', url);
@@ -57,21 +57,21 @@ export default function RFPsPageClient() {
       }
       formData.append('method', addMethod);
 
-      const response = await fetch('/api/rfps', {
+      const response = await fetch('/api/opportunities', {
         method: 'POST',
         body: formData
       });
 
       if (response.ok) {
-        const newRfp = await response.json();
-        setRfps(prev => [...prev, newRfp]);
+        const newOpportunity = await response.json();
+        setOpportunities(prev => [...prev, newOpportunity]);
         setShowAddModal(false);
         setAddMethod(null);
         setUrl('');
         setFile(null);
       }
     } catch (error) {
-      console.error('Error adding RFP:', error);
+      console.error('Error adding Opportunity:', error);
     } finally {
       setIsProcessing(false);
     }
@@ -84,9 +84,9 @@ export default function RFPsPageClient() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">RFP Management</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Opportunity Management</h1>
             <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              Manage your Request for Proposals (RFPs) and generate proposals from them.
+              Manage your Opportunities (RFPs, prospects, etc.) and generate proposals from them.
             </p>
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
@@ -95,7 +95,7 @@ export default function RFPsPageClient() {
               className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add RFP
+              Add Opportunity
             </button>
           </div>
         </div>
@@ -123,35 +123,35 @@ export default function RFPsPageClient() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                      {rfps.map((rfp) => (
-                        <tr key={rfp.id}>
+                      {opportunities.map((opportunity) => (
+                        <tr key={opportunity.id}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-white sm:pl-6">
-                            {rfp.title}
+                            {opportunity.title}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {rfp.organization}
+                            {opportunity.organization}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm">
                             <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                              rfp.status === 'active' 
+                              opportunity.status === 'active' 
                                 ? 'bg-green-100 text-green-800'
-                                : rfp.status === 'closed'
+                                : opportunity.status === 'closed'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {rfp.status}
+                              {opportunity.status}
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {rfp.dueDate ? new Date(rfp.dueDate).toLocaleDateString() : 'N/A'}
+                            {opportunity.dueDate ? new Date(opportunity.dueDate).toLocaleDateString() : 'N/A'}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {rfp.source === 'url' ? (
-                              <a href={rfp.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                            {opportunity.source === 'url' ? (
+                              <a href={opportunity.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
                                 <LinkIcon className="w-4 h-4" />
                               </a>
-                            ) : rfp.source === 'file' ? (
-                              <a href={rfp.sourceFile} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                            ) : opportunity.source === 'file' ? (
+                              <a href={opportunity.sourceFile} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
                                 <FileText className="w-4 h-4" />
                               </a>
                             ) : (
@@ -177,12 +177,12 @@ export default function RFPsPageClient() {
         )}
       </div>
 
-      {/* Add RFP Modal */}
+      {/* Add Opportunity Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New RFP</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Opportunity</h3>
               <button onClick={() => {
                 setShowAddModal(false);
                 setAddMethod(null);
@@ -201,7 +201,7 @@ export default function RFPsPageClient() {
                     <LinkIcon className="w-5 h-5 mr-3 text-gray-400" />
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white">Add from URL</h4>
-                      <p className="text-sm text-gray-500">Import RFP details from a webpage</p>
+                      <p className="text-sm text-gray-500">Import Opportunity details from a webpage</p>
                     </div>
                   </div>
                 </button>
@@ -225,7 +225,7 @@ export default function RFPsPageClient() {
                     <FileText className="w-5 h-5 mr-3 text-gray-400" />
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white">Create Manually</h4>
-                      <p className="text-sm text-gray-500">Enter RFP details manually</p>
+                      <p className="text-sm text-gray-500">Enter Opportunity details manually</p>
                     </div>
                   </div>
                 </button>
@@ -235,7 +235,7 @@ export default function RFPsPageClient() {
                 {addMethod === 'url' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      RFP URL
+                      Opportunity URL
                     </label>
                     <input
                       type="url"
@@ -250,7 +250,7 @@ export default function RFPsPageClient() {
                 {addMethod === 'file' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Upload RFP Document
+                      Upload Opportunity Document
                     </label>
                     <input
                       type="file"
@@ -273,7 +273,7 @@ export default function RFPsPageClient() {
                     Back
                   </button>
                   <button
-                    onClick={handleAddRFP}
+                    onClick={handleAddOpportunity}
                     disabled={isProcessing || (addMethod === 'url' && !url) || (addMethod === 'file' && !file)}
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
